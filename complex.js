@@ -126,6 +126,11 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
     console.log(`# START ROUND ${roundCount} #`);
     loopUntilPlayer1Action(); //P1 action entry
     function loopUntilPlayer1Action() {
+      if (!isSinglePlayer) {
+        console.log(
+          `%%%%%%%%%%%%%%%%%%%%%%%%% ${player2Name.toUpperCase()} LOOK AWAY %%%%%%%%%%%%%%%%%%%%%%%%%`
+        );
+      }
       player1 = prompt(`${player1Name} please enter a action: `);
       if (!playActions.includes(player1.toLowerCase())) {
         console.log(
@@ -142,6 +147,11 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
       loopUntilPlayer2Action(); //P2 action entry only if multi player
     }
     function loopUntilPlayer2Action() {
+      if (!isSinglePlayer) {
+        console.log(
+          `%%%%%%%%%%%%%%%%%%%%%%%%% ${player1Name.toUpperCase()} LOOK AWAY %%%%%%%%%%%%%%%%%%%%%%%%%`
+        );
+      }
       //P2 action entry
       player2 = prompt(`${player2Name} please enter a action: `);
       if (!playActions.includes(player2.toLowerCase())) {
