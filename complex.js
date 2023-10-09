@@ -1,4 +1,5 @@
 const prompt = require("prompt-sync")();
+const { spawnSync } = require("child_process");
 // WRITE YOUR CODE HERE
 const playActions = ["rock", "paper", "scissors", "lizard", "spock"];
 const yesOptions = ["Y", "y", "yes", "YES", "Yes"];
@@ -13,7 +14,7 @@ let player2scorePerm = 0;
 let roundCountPerm = 0;
 let player1Name = "";
 let player2Name = "";
-let isSinglePlayer = true;
+let isSinglePlayer = null;
 let gameMode;
 //prettier-ignore
 const ggAsciiImage = `  ____    ____   _ 
@@ -30,19 +31,15 @@ function play() {
 Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
 ######################################################################\n`
     );
-    //## select mode is broken ##
-    /*loopUntilModeSelected();
+    //select mode
+    loopUntilModeSelected();
     function loopUntilModeSelected() {
       gameMode = prompt(
         "Would you like to play SINGLE or MULTI player mode?(single/multi): "
       );
-      if (
-        gameMode === "" ||
-        gameMode.toLowerCase() != "single" ||
-        gameMode.toLowerCase() != "multi"
-      ) {
+      if (!["single", "multi"].includes(gameMode.toLowerCase())) {
         console.log(
-          "Please ensure that you have entered a game mode of either:\n⇨ single\n⇨ multi \n\n########################################################"
+          "\n########################################################\nPlease ensure that you have entered a game mode of either:\n⇨ single\n⇨ multi \n########################################################\n"
         );
         loopUntilModeSelected();
       } else if (gameMode === "single") {
@@ -51,7 +48,7 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
         isSinglePlayer = false;
       }
       console.log(gameMode);
-    }*/
+    }
     //select name
     loopUntilNamesEntered();
     function loopUntilNamesEntered() {
@@ -63,7 +60,7 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
         player1Name.toLowerCase() === player2Name.toLowerCase()
       ) {
         console.log(
-          "⇨ Please ensure that you have at least 1 character for each player's name and that they are unique\n\n########################################################"
+          "\n########################################################\nPlease ensure that the following criteria is met:\n⇨ Each name contains at least 1 character\n⇨ Each name is unique\n########################################################\n"
         );
         loopUntilNamesEntered();
       }
@@ -73,13 +70,9 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
     return playActions[Math.floor(Math.random() * 5)];
   }
 
-  //const name1 = player1Name.eval();
-  //const name2 = eval(player2Name);
-
   function ScoresTable(player1score, player2score) {
     this.player1score = player1score;
     this.player2score = player2score;
-    //eval(player1Name)
   }
 
   function endGameAndDisplayScores() {
@@ -109,27 +102,59 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
 
           console.log(
             player1scorePerm > player2scorePerm
-              ? `## Congradulations ${player1Name} on the score of ${player1scorePerm} after ${roundCountPerm} rounds! ##`
+              ? `## Congradulations ${player1Name} on the score of ${player1scorePerm} after ${
+                  roundCountPerm - 10
+                } rounds! ##`
               : player1scorePerm < player2scorePerm
-              ? `## Congradulations ${player2Name} on the score of ${player2scorePerm} after ${roundCountPerm} rounds! ##`
+              ? `## Congradulations ${player2Name} on the score of ${player2scorePerm} after ${
+                  roundCountPerm - 10
+                } rounds! ##`
               : `## It's a Draw, Time for a Rematch since you both scored ${player1scorePerm} after ${roundCountPerm} rounds! ##`
           );
         }
         console.log(`Bye for now!\n${ggAsciiImage}\n`);
       } else {
         console.log(
-          `You didn't enter any of these acceptable values:\n⇨ ${yesOptions}\n⇨ ${noOptions}\n `
+          `\n########################################################\nYou didn't enter any of these acceptable values:\n⇨ ${yesOptions}\n⇨ ${noOptions}\n########################################################\n`
         );
-        console.log("########################################################");
         doTheyWantAnotherRound();
       }
     }
   }
 
   function gameLoop(player1, player2) {
-    console.log(`# START ROUND ${roundCount} # \nCurrent Scores:`);
-    console.table(new ScoresTable(player1score, player2score));
+    console.log(`# START ROUND ${roundCount} #`);
+    loopUntilPlayer1Action(); //P1 action entry
+    function loopUntilPlayer1Action() {
+      player1 = prompt(`${player1Name} please enter a action: `);
+      if (!playActions.includes(player1.toLowerCase())) {
+        console.log(
+          `\n########################################################\nPlease ensure that you have entered one of these values:\n⇨ ${playActions} \n########################################################\n`
+        );
+        loopUntilPlayer1Action();
+      } else {
+        if (!isSinglePlayer) {
+          clearConsole();
+        }
+      }
+    }
+    if (!isSinglePlayer) {
+      loopUntilPlayer2Action(); //P2 action entry only if multi player
+    }
+    function loopUntilPlayer2Action() {
+      //P2 action entry
+      player2 = prompt(`${player2Name} please enter a action: `);
+      if (!playActions.includes(player2.toLowerCase())) {
+        console.log(
+          `\n########################################################\nPlease ensure that you have entered one of these values:\n⇨ ${playActions} \n########################################################\n`
+        );
+        loopUntilPlayer2Action();
+      }
+    }
+
+    console.log("Current Scores:");
     if (player1 === player2) {
+      console.table(new ScoresTable(player1score, player2score));
       console.log(
         `Results of round ${roundCount}:\n⇨ Draw because ${player1} is the same as ${player2}\n`
       );
@@ -146,6 +171,7 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
       (player1 === "rock" && player2 === "lizard")
     ) {
       player1score++; //p1
+      console.table(new ScoresTable(player1score, player2score));
       console.log(
         `Results of round ${roundCount}:\n⇨ ${player1Name} wins because ${player1} beats ${player2}\n`
       );
@@ -162,6 +188,7 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
       (player2 === "rock" && player1 === "lizard")
     ) {
       player2score++; //p2
+      console.table(new ScoresTable(player1score, player2score));
       console.log(
         `Results of round ${roundCount}:\n⇨ ${player2Name} wins because ${player2} beats ${player1}\n`
       );
@@ -175,7 +202,7 @@ Hello and welcome to Rock, Paper, Scissors (Lizard and Spock Edition)!
 
   while (roundCount < 10) {
     roundCount++;
-    player1action = randomChoice();
+    player1action = null;
     player2action = randomChoice();
     gameLoop(player1action, player2action);
   }
@@ -195,7 +222,12 @@ function resetGame() {
   roundCount = 0;
   player1action = "";
   player2action = "";
+  isSinglePlayer = null;
   play();
+}
+
+function clearConsole() {
+  process.stdout.write("\x1Bc");
 }
 // FREEZE CODE BEGIN
 module.exports = {
@@ -204,5 +236,13 @@ module.exports = {
   resetGame,
   gameLoop() {},
   endGameAndDisplayScores() {},
+  loopUntilNamesEntered() {},
+  loopUntilModeSelected() {},
+  doTheyWantAnotherRound() {},
+  loopUntilPlayer1Action() {},
+  loopUntilPlayer2Action() {},
+  storeScoresAndRounds() {},
+  ScoresTable() {},
+  clearConsole() {},
 };
 // FREEZE CODE END
